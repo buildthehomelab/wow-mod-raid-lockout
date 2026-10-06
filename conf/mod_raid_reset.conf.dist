@@ -1,0 +1,235 @@
+[worldserver]
+
+########################################
+# mod-raid-reset
+#
+# Sets how many days each raid's lockout lasts. Raids reset at Instance.ResetTimeHour
+# (worldserver.conf, counted from midnight UTC) every N days.
+#
+# Every raid setting below takes a number of days from 1 to 30. 0 keeps the timer the raid already
+# has (from MapDifficulty.dbc, or from mod-individual-progression for the 40-man versions). The
+# worldserver log lists every changed raid and its stock timer at startup.
+#
+# Restart the worldserver after changing these. A shorter timer takes effect at the next reset
+# hour after the restart; existing lockouts that would last longer are shortened too.
+########################################
+
+#
+#    RaidReset.Enable
+#        Description: Master switch. 0 restores every raid's stock timer.
+#        Default:     1
+#
+
+RaidReset.Enable = 1
+
+########################################
+# Vanilla
+########################################
+
+#
+#    RaidReset.ZulGurub
+#        Description: Zul'Gurub. Days between resets (stock: 3).
+#        Default:     0
+#
+
+RaidReset.ZulGurub = 0
+
+#
+#    RaidReset.RuinsOfAhnQiraj
+#        Description: Ruins of Ahn'Qiraj (AQ20). Days between resets (stock: 3).
+#        Default:     0
+#
+
+RaidReset.RuinsOfAhnQiraj = 0
+
+#
+#    RaidReset.MoltenCore
+#        Description: Molten Core. Days between resets (stock: 7).
+#        Default:     0
+#
+
+RaidReset.MoltenCore = 0
+
+#
+#    RaidReset.OnyxiasLair40
+#        Description: Onyxia's Lair, 40-man version from mod-individual-progression. Days between resets (stock: 7).
+#        Default:     0
+#
+
+RaidReset.OnyxiasLair40 = 0
+
+#
+#    RaidReset.BlackwingLair
+#        Description: Blackwing Lair. Days between resets (stock: 7).
+#        Default:     0
+#
+
+RaidReset.BlackwingLair = 0
+
+#
+#    RaidReset.TempleOfAhnQiraj
+#        Description: Temple of Ahn'Qiraj (AQ40). Days between resets (stock: 7).
+#        Default:     0
+#
+
+RaidReset.TempleOfAhnQiraj = 0
+
+#
+#    RaidReset.Naxxramas40
+#        Description: Naxxramas, 40-man version from mod-individual-progression. Days between resets (stock: 7).
+#        Default:     0
+#
+
+RaidReset.Naxxramas40 = 0
+
+########################################
+# The Burning Crusade
+########################################
+
+#
+#    RaidReset.Karazhan
+#        Description: Karazhan. Days between resets.
+#        Default:     0
+#
+
+RaidReset.Karazhan = 0
+
+#
+#    RaidReset.ZulAman
+#        Description: Zul'Aman. Days between resets.
+#        Default:     0
+#
+
+RaidReset.ZulAman = 0
+
+#
+#    RaidReset.GruulsLair
+#        Description: Gruul's Lair. Days between resets.
+#        Default:     0
+#
+
+RaidReset.GruulsLair = 0
+
+#
+#    RaidReset.MagtheridonsLair
+#        Description: Magtheridon's Lair. Days between resets.
+#        Default:     0
+#
+
+RaidReset.MagtheridonsLair = 0
+
+#
+#    RaidReset.SerpentshrineCavern
+#        Description: Serpentshrine Cavern. Days between resets.
+#        Default:     0
+#
+
+RaidReset.SerpentshrineCavern = 0
+
+#
+#    RaidReset.TempestKeep
+#        Description: Tempest Keep (The Eye). Days between resets.
+#        Default:     0
+#
+
+RaidReset.TempestKeep = 0
+
+#
+#    RaidReset.MountHyjal
+#        Description: Hyjal Summit. Days between resets.
+#        Default:     0
+#
+
+RaidReset.MountHyjal = 0
+
+#
+#    RaidReset.BlackTemple
+#        Description: Black Temple. Days between resets.
+#        Default:     0
+#
+
+RaidReset.BlackTemple = 0
+
+#
+#    RaidReset.SunwellPlateau
+#        Description: Sunwell Plateau. Days between resets.
+#        Default:     0
+#
+
+RaidReset.SunwellPlateau = 0
+
+########################################
+# Wrath of the Lich King (every size and heroic mode)
+########################################
+
+#
+#    RaidReset.Naxxramas
+#        Description: Naxxramas 10/25. Days between resets.
+#        Default:     0
+#
+
+RaidReset.Naxxramas = 0
+
+#
+#    RaidReset.OnyxiasLair
+#        Description: Onyxia's Lair 10/25. Days between resets.
+#        Default:     0
+#
+
+RaidReset.OnyxiasLair = 0
+
+#
+#    RaidReset.ObsidianSanctum
+#        Description: The Obsidian Sanctum. Days between resets.
+#        Default:     0
+#
+
+RaidReset.ObsidianSanctum = 0
+
+#
+#    RaidReset.EyeOfEternity
+#        Description: The Eye of Eternity. Days between resets.
+#        Default:     0
+#
+
+RaidReset.EyeOfEternity = 0
+
+#
+#    RaidReset.VaultOfArchavon
+#        Description: Vault of Archavon. Days between resets.
+#        Default:     0
+#
+
+RaidReset.VaultOfArchavon = 0
+
+#
+#    RaidReset.Ulduar
+#        Description: Ulduar. Days between resets.
+#        Default:     0
+#
+
+RaidReset.Ulduar = 0
+
+#
+#    RaidReset.TrialOfTheCrusader
+#        Description: Trial of the Crusader. Days between resets.
+#        Default:     0
+#
+
+RaidReset.TrialOfTheCrusader = 0
+
+#
+#    RaidReset.IcecrownCitadel
+#        Description: Icecrown Citadel. Days between resets.
+#        Default:     0
+#
+
+RaidReset.IcecrownCitadel = 0
+
+#
+#    RaidReset.RubySanctum
+#        Description: The Ruby Sanctum. Days between resets.
+#        Default:     0
+#
+
+RaidReset.RubySanctum = 0
