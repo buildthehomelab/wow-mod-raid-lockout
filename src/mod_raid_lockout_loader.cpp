@@ -1,16 +1,16 @@
 /*
- * mod-raid-reset loader.
+ * mod-raid-lockout loader.
  *
  * AzerothCore looks up a loader symbol derived from the module's folder name: for folder
- * "mod-raid-reset" that symbol is exactly "Addmod_raid_resetScripts". If you clone the
+ * "mod-raid-lockout" that symbol is exactly "Addmod_raid_lockoutScripts". If you clone the
  * repo under a different folder name, rename this function to match.
  *
  * Released under the MIT License.
  */
 
-void AddRaidResetScripts();
+void AddRaidLockoutScripts();
 
-void Addmod_raid_resetScripts()
+void Addmod_raid_lockoutScripts()
 {
-    AddRaidResetScripts();
+    AddRaidLockoutScripts();
 }
