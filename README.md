@@ -26,6 +26,15 @@ Category: Raids
 
 > Small groups and bot raids shouldn't have to wait a week to try a raid again.
 
+## Requirements
+
+- An AzerothCore WotLK server (`azerothcore-wotlk`, master). Stock core only; the module needs no
+  SQL and no client patch.
+- Optional: [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression)
+  for the `RaidReset.OnyxiasLair40` and `RaidReset.Naxxramas40` settings. Without it the 40-man
+  versions don't exist and those two settings are skipped.
+- WoW 3.3.5a (12340) client.
+
 ## Installation
 
 Clone it into your AzerothCore `modules` folder, **as `mod-raid-reset`**. AzerothCore derives the
@@ -105,6 +114,19 @@ date per raid in the `instance_reset` table, and schedules resets from it.
 A raid that has never reset on your server (no `instance_reset` row yet) gets its first reset date
 from its stock timer. Every reset after that uses the configured one.
 
+## Troubleshooting
+
+- **A new timer doesn't apply after `.reload config`.** Restart the worldserver. A reload only
+  applies new values from the reset after the one already scheduled.
+- **Raids reset at the wrong time of day.** The core counts `Instance.ResetTimeHour`
+  (worldserver.conf, default `4`) from midnight UTC, so the default is 04:00 UTC.
+- **A raid still uses its stock timer.** Its setting is `0` (the default), which keeps the raid's
+  own timer, or `RaidReset.Enable` is `0`.
+
+## Credits
+
+Author: [buildthehomelab](https://github.com/buildthehomelab)
+
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
