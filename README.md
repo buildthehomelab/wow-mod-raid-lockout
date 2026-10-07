@@ -1,7 +1,8 @@
-# Raid Reset
+# Raid Lockout
 
-An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module. It gives every raid its own
-reset timer, in days, set in the config.
+An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module. It sets how long each raid's
+lockout lasts, in days, per raid in the config. (Formerly mod-raid-reset; the config keys moved
+from `RaidReset.*` to `RaidLockout.*`.)
 
 The core only has one knob for raid lockouts: `Rate.InstanceResetTime`, a multiplier on top of the
 timers in `MapDifficulty.dbc` (3 days for Zul'Gurub and Ruins of Ahn'Qiraj, 7 days for most other
@@ -16,7 +17,7 @@ Naxxramas every 3 days.
   new timer resets at the next reset hour, and existing lockouts are shortened to match.
 - **The calendar and raid info window** show the new reset times.
 
-## Patch Notes: Raid Reset
+## Patch Notes: Raid Lockout
 
 Category: Raids
 
@@ -31,27 +32,27 @@ Category: Raids
 - An AzerothCore WotLK server (`azerothcore-wotlk`, master). Stock core only; the module needs no
   SQL and no client patch.
 - Optional: [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression)
-  for the `RaidReset.OnyxiasLair40` and `RaidReset.Naxxramas40` settings. Without it the 40-man
+  for the `RaidLockout.OnyxiasLair40` and `RaidLockout.Naxxramas40` settings. Without it the 40-man
   versions don't exist and those two settings are skipped.
 - WoW 3.3.5a (12340) client.
 
 ## Installation
 
-Clone it into your AzerothCore `modules` folder, **as `mod-raid-reset`**. AzerothCore derives the
+Clone it into your AzerothCore `modules` folder, **as `mod-raid-lockout`**. AzerothCore derives the
 module's loader name from the folder name:
 
 ```bash
 cd azerothcore-wotlk/modules
-git clone https://github.com/buildthehomelab/wow-mod-raid-reset.git mod-raid-reset
+git clone https://github.com/buildthehomelab/wow-mod-raid-lockout.git mod-raid-lockout
 ```
 
-Re-run CMake, rebuild the worldserver, and copy `conf/mod_raid_reset.conf.dist` to
-`mod_raid_reset.conf` in your config directory. The module needs no SQL.
+Re-run CMake, rebuild the worldserver, and copy `conf/mod_raid_lockout.conf.dist` to
+`mod_raid_lockout.conf` in your config directory. The module needs no SQL.
 
 To check that it's loaded, look for a line like this in the worldserver log at startup:
 
 ```
-mod-raid-reset: Molten Core 1d (stock 7d), Blackwing Lair 1d (stock 7d)
+mod-raid-lockout: Molten Core 1d (stock 7d), Blackwing Lair 1d (stock 7d)
 ```
 
 ## Configuration
@@ -61,32 +62,32 @@ timer.
 
 | Setting | Raid |
 | --- | --- |
-| `RaidReset.Enable` | Master switch (`1`). `0` restores every stock timer. |
-| `RaidReset.ZulGurub` | Zul'Gurub |
-| `RaidReset.RuinsOfAhnQiraj` | Ruins of Ahn'Qiraj |
-| `RaidReset.MoltenCore` | Molten Core |
-| `RaidReset.OnyxiasLair40` | Onyxia's Lair, 40-man (mod-individual-progression) |
-| `RaidReset.BlackwingLair` | Blackwing Lair |
-| `RaidReset.TempleOfAhnQiraj` | Temple of Ahn'Qiraj |
-| `RaidReset.Naxxramas40` | Naxxramas, 40-man (mod-individual-progression) |
-| `RaidReset.Karazhan` | Karazhan |
-| `RaidReset.ZulAman` | Zul'Aman |
-| `RaidReset.GruulsLair` | Gruul's Lair |
-| `RaidReset.MagtheridonsLair` | Magtheridon's Lair |
-| `RaidReset.SerpentshrineCavern` | Serpentshrine Cavern |
-| `RaidReset.TempestKeep` | Tempest Keep (The Eye) |
-| `RaidReset.MountHyjal` | Hyjal Summit |
-| `RaidReset.BlackTemple` | Black Temple |
-| `RaidReset.SunwellPlateau` | Sunwell Plateau |
-| `RaidReset.Naxxramas` | Naxxramas 10/25 |
-| `RaidReset.OnyxiasLair` | Onyxia's Lair 10/25 |
-| `RaidReset.ObsidianSanctum` | The Obsidian Sanctum |
-| `RaidReset.EyeOfEternity` | The Eye of Eternity |
-| `RaidReset.VaultOfArchavon` | Vault of Archavon |
-| `RaidReset.Ulduar` | Ulduar |
-| `RaidReset.TrialOfTheCrusader` | Trial of the Crusader |
-| `RaidReset.IcecrownCitadel` | Icecrown Citadel |
-| `RaidReset.RubySanctum` | The Ruby Sanctum |
+| `RaidLockout.Enable` | Master switch (`1`). `0` restores every stock timer. |
+| `RaidLockout.ZulGurub` | Zul'Gurub |
+| `RaidLockout.RuinsOfAhnQiraj` | Ruins of Ahn'Qiraj |
+| `RaidLockout.MoltenCore` | Molten Core |
+| `RaidLockout.OnyxiasLair40` | Onyxia's Lair, 40-man (mod-individual-progression) |
+| `RaidLockout.BlackwingLair` | Blackwing Lair |
+| `RaidLockout.TempleOfAhnQiraj` | Temple of Ahn'Qiraj |
+| `RaidLockout.Naxxramas40` | Naxxramas, 40-man (mod-individual-progression) |
+| `RaidLockout.Karazhan` | Karazhan |
+| `RaidLockout.ZulAman` | Zul'Aman |
+| `RaidLockout.GruulsLair` | Gruul's Lair |
+| `RaidLockout.MagtheridonsLair` | Magtheridon's Lair |
+| `RaidLockout.SerpentshrineCavern` | Serpentshrine Cavern |
+| `RaidLockout.TempestKeep` | Tempest Keep (The Eye) |
+| `RaidLockout.MountHyjal` | Hyjal Summit |
+| `RaidLockout.BlackTemple` | Black Temple |
+| `RaidLockout.SunwellPlateau` | Sunwell Plateau |
+| `RaidLockout.Naxxramas` | Naxxramas 10/25 |
+| `RaidLockout.OnyxiasLair` | Onyxia's Lair 10/25 |
+| `RaidLockout.ObsidianSanctum` | The Obsidian Sanctum |
+| `RaidLockout.EyeOfEternity` | The Eye of Eternity |
+| `RaidLockout.VaultOfArchavon` | Vault of Archavon |
+| `RaidLockout.Ulduar` | Ulduar |
+| `RaidLockout.TrialOfTheCrusader` | Trial of the Crusader |
+| `RaidLockout.IcecrownCitadel` | Icecrown Citadel |
+| `RaidLockout.RubySanctum` | The Ruby Sanctum |
 
 A WotLK raid's setting covers all its sizes and heroic modes.
 
@@ -121,7 +122,7 @@ from its stock timer. Every reset after that uses the configured one.
 - **Raids reset at the wrong time of day.** The core counts `Instance.ResetTimeHour`
   (worldserver.conf, default `4`) from midnight UTC, so the default is 04:00 UTC.
 - **A raid still uses its stock timer.** Its setting is `0` (the default), which keeps the raid's
-  own timer, or `RaidReset.Enable` is `0`.
+  own timer, or `RaidLockout.Enable` is `0`.
 
 ## Credits
 

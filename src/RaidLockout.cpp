@@ -1,5 +1,5 @@
 /*
- * mod-raid-reset: a reset timer (in days) for every raid.
+ * mod-raid-lockout: a reset timer (in days) for every raid.
  *
  * The core takes each raid's reset period from MapDifficulty.dbc (resetTime) times the global
  * Rate.InstanceResetTime. This module overwrites resetTime per raid, and pulls stored reset dates
@@ -26,7 +26,7 @@ namespace
 {
     struct RaidDef
     {
-        char const* key;            // RaidReset.<key>
+        char const* key;            // RaidLockout.<key>
         char const* name;
         uint32 mapId;
         std::vector<uint8> difficulties;
@@ -74,9 +74,9 @@ namespace
 
     void LoadConfig()
     {
-        sEnabled = sConfigMgr->GetOption<bool>("RaidReset.Enable", true);
+        sEnabled = sConfigMgr->GetOption<bool>("RaidLockout.Enable", true);
         for (size_t i = 0; i < Raids.size(); ++i)
-            sDays[i] = std::min(sConfigMgr->GetOption<uint32>(std::string("RaidReset.") + Raids[i].key, 0), MaxDays);
+            sDays[i] = std::min(sConfigMgr->GetOption<uint32>(std::string("RaidLockout.") + Raids[i].key, 0), MaxDays);
     }
 
     time_t NextResetHour(time_t now)
@@ -115,7 +115,7 @@ namespace
                 // Existing lockouts show their own reset date in the raid info window.
                 CharacterDatabase.DirectExecute("UPDATE instance SET resettime = {} WHERE map = {} AND difficulty = {} AND resettime > {}", uint32(next), raid.mapId, difficulty, uint32(next));
 
-                LOG_INFO("server.loading", "mod-raid-reset: {} (difficulty {}) next reset moved from {} to {}", raid.name, difficulty,
+                LOG_INFO("server.loading", "mod-raid-lockout: {} (difficulty {}) next reset moved from {} to {}", raid.name, difficulty,
                     Acore::Time::TimeToTimestampStr(Seconds(stored)), Acore::Time::TimeToTimestampStr(Seconds(next)));
             }
         }
@@ -165,7 +165,7 @@ namespace
     {
         if (!sEnabled)
         {
-            LOG_INFO("server.loading", "mod-raid-reset: disabled, stock raid reset timers");
+            LOG_INFO("server.loading", "mod-raid-lockout: disabled, stock raid reset timers");
             return;
         }
 
@@ -184,14 +184,14 @@ namespace
             changed += Acore::StringFormat("{} {}d (stock {}d)", Raids[i].name, sDays[i], stock->second / DAY);
         }
 
-        LOG_INFO("server.loading", "mod-raid-reset: {}", changed.empty() ? "no raid timers changed" : changed);
+        LOG_INFO("server.loading", "mod-raid-lockout: {}", changed.empty() ? "no raid timers changed" : changed);
     }
 }
 
-class RaidResetWorldScript : public WorldScript
+class RaidLockoutWorldScript : public WorldScript
 {
 public:
-    RaidResetWorldScript() : WorldScript("RaidResetWorldScript", {
+    RaidLockoutWorldScript() : WorldScript("RaidLockoutWorldScript", {
         WORLDHOOK_ON_AFTER_CONFIG_LOAD,
         WORLDHOOK_ON_LOAD_CUSTOM_DATABASE_TABLE,
         WORLDHOOK_ON_BEFORE_WORLD_INITIALIZED }) { }
@@ -225,7 +225,7 @@ public:
     }
 };
 
-void AddRaidResetScripts()
+void AddRaidLockoutScripts()
 {
-    new RaidResetWorldScript();
+    new RaidLockoutWorldScript();
 }
