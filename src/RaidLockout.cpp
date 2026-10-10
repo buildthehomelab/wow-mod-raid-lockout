@@ -6,20 +6,38 @@
  * that lie further out than the new period in to the next reset hour, so a shorter timer applies
  * right after a restart instead of after the old lockout runs out.
  *
+ * With shorter lockouts a boss dies far more often than its trophy can be handed in. A Head of
+ * Onyxia starts a one-time quest, and the core stops dropping a quest starter for anyone who has
+ * done its quest. So when a dungeon or raid boss (or a chest inside a dungeon or raid) drops an
+ * item that starts a quest, the module forgets that quest and its follow-ups for every group
+ * member who has finished them. The item drops for them again and they can hand it in for another
+ * reward, or just for the city buff (RaidLockout.RepeatableBossQuests).
+ *
  * Released under the MIT License.
  */
 
 #include "CharacterDatabase.h"
 #include "Config.h"
+#include "Creature.h"
 #include "DBCStores.h"
+#include "Group.h"
 #include "InstanceSaveMgr.h"
+#include "ItemTemplate.h"
 #include "Log.h"
+#include "LootMgr.h"
+#include "Map.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
+#include "Player.h"
+#include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "Timer.h"
 #include "World.h"
+#include <algorithm>
 #include <ctime>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace
@@ -72,9 +90,17 @@ namespace
     std::vector<uint32> sDays(Raids.size(), 0);                 // 0 = keep the stock timer
     std::unordered_map<uint32, uint32> sStockResetTime;         // PAIR32(map, difficulty) -> DBC resetTime
 
+    // Quest starter item -> the quest it starts and the follow-ups handed out after it. Filled
+    // once the world is loaded and only read after that, so map threads can use it.
+    bool sRepeatableBossQuests = true;
+    uint32 sBossQuestChain = 3;
+    std::unordered_map<uint32, std::vector<uint32>> sBossQuestChains;
+
     void LoadConfig()
     {
         sEnabled = sConfigMgr->GetOption<bool>("RaidLockout.Enable", true);
+        sRepeatableBossQuests = sConfigMgr->GetOption<bool>("RaidLockout.RepeatableBossQuests", true);
+        sBossQuestChain = sConfigMgr->GetOption<uint32>("RaidLockout.RepeatableBossQuestChain", 3);
         for (size_t i = 0; i < Raids.size(); ++i)
             sDays[i] = std::min(sConfigMgr->GetOption<uint32>(std::string("RaidLockout.") + Raids[i].key, 0), MaxDays);
     }
@@ -186,6 +212,91 @@ namespace
 
         LOG_INFO("server.loading", "mod-raid-lockout: {}", changed.empty() ? "no raid timers changed" : changed);
     }
+
+    // The quests a starter item's turn-in is made of: the quest it starts, then each quest's
+    // follow-up for as long as that follow-up needs the quest before it. Empty when the turn-in
+    // can't safely be done again:
+    // - a quest in it is already repeatable, daily, weekly or seasonal;
+    // - an NPC or object also gives the first quest, so forgetting it would hand it out without
+    //   the boss;
+    // - it is longer than RaidLockout.RepeatableBossQuestChain. Those are story chains (An Unsent
+    //   Letter), not trophies.
+    // A follow-up that doesn't need the quest before it ends the chain and is left alone: forgotten,
+    // it could be taken again and again without a new item.
+    std::vector<uint32> BuildChain(uint32 firstQuest, std::unordered_set<uint32> const& givenQuests)
+    {
+        if (givenQuests.count(firstQuest))
+            return {};
+
+        std::vector<uint32> chain;
+        uint32 questId = firstQuest;
+        while (questId)
+        {
+            Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+            if (!quest || quest->IsRepeatable() || quest->IsDailyOrWeekly() || quest->IsSeasonal())
+                return {};
+
+            if (!chain.empty() && std::find(quest->prevQuests.begin(), quest->prevQuests.end(), int32(chain.back())) == quest->prevQuests.end())
+                break;
+
+            if (chain.size() >= sBossQuestChain)
+                return {};
+
+            chain.push_back(questId);
+            questId = quest->GetNextQuestInChain();
+            if (std::find(chain.begin(), chain.end(), questId) != chain.end())
+                break;
+        }
+
+        return chain;
+    }
+
+    void BuildBossQuestChains()
+    {
+        // Quests an NPC or object hands out. An NPC players can't talk to doesn't count: the
+        // Heart of Hakkar on Yojamba Isle is listed as giving its own quest, but can't be selected.
+        std::unordered_set<uint32> givenQuests;
+        for (auto const& [giver, quest] : *sObjectMgr->GetGOQuestRelationMap())
+            givenQuests.insert(quest);
+
+        for (auto const& [giver, quest] : *sObjectMgr->GetCreatureQuestRelationMap())
+        {
+            CreatureTemplate const* npc = sObjectMgr->GetCreatureTemplate(giver);
+            if (npc && (npc->npcflag & UNIT_NPC_FLAG_QUESTGIVER) && !(npc->unit_flags & UNIT_FLAG_NOT_SELECTABLE))
+                givenQuests.insert(quest);
+        }
+
+        sBossQuestChains.clear();
+        for (auto const& [itemId, item] : *sObjectMgr->GetItemTemplateStore())
+        {
+            if (!item.StartQuest)
+                continue;
+
+            std::vector<uint32> chain = BuildChain(item.StartQuest, givenQuests);
+            if (!chain.empty())
+                sBossQuestChains.emplace(itemId, std::move(chain));
+        }
+
+        LOG_INFO("server.loading", "mod-raid-lockout: {} quest starter items can be handed in again when a boss drops them", sBossQuestChains.size());
+    }
+
+    // Forgets a finished turn-in. Left alone while a quest of it is in the quest log, and until
+    // its last quest is handed in: the item only drops again once the reward has been collected.
+    void ForgetFinishedChain(Player* player, std::vector<uint32> const& chain)
+    {
+        if (!player->IsQuestRewarded(chain.back()))
+            return;
+
+        for (uint32 questId : chain)
+        {
+            QuestStatus const status = player->GetQuestStatus(questId);
+            if (status != QUEST_STATUS_NONE && status != QUEST_STATUS_REWARDED)
+                return;
+        }
+
+        for (uint32 questId : chain)
+            player->RemoveRewardedQuest(questId);
+    }
 }
 
 class RaidLockoutWorldScript : public WorldScript
@@ -199,6 +310,10 @@ public:
     void OnAfterConfigLoad(bool reload) override
     {
         LoadConfig();
+
+        // The maps aren't updating while a reload runs, so nothing is reading the chains.
+        if (reload)
+            BuildBossQuestChains();
 
         // A reload changes the period that follows the next reset; the reset already scheduled
         // stays where it is until a restart.
@@ -222,10 +337,51 @@ public:
     {
         ApplyPeriods(true);
         LogSummary();
+        BuildBossQuestChains();
+    }
+};
+
+// A quest starter is about to be added to a boss's loot. The core decides right after this who
+// may loot it, so this is the moment to forget the turn-in for group members who finished it.
+class RaidLockoutGlobalScript : public GlobalScript
+{
+public:
+    RaidLockoutGlobalScript() : GlobalScript("RaidLockoutGlobalScript", { GLOBALHOOK_ON_BEFORE_DROP_ADD_ITEM }) { }
+
+    void OnBeforeDropAddItem(Player const* looter, Loot& loot, bool /*canRate*/, uint16 /*lootMode*/, LootStoreItem* item, LootStore const& store) override
+    {
+        if (!sRepeatableBossQuests || !looter || !item)
+            return;
+
+        auto itr = sBossQuestChains.find(item->itemid);
+        if (itr == sBossQuestChains.end())
+            return;
+
+        // A dungeon, raid or world boss, or a chest inside a dungeon or raid (Majordomo's cache).
+        if (&store == &LootTemplates_Creature)
+        {
+            Creature const* boss = ObjectAccessor::GetCreature(*looter, loot.sourceWorldObjectGUID);
+            if (!boss || (!boss->IsDungeonBoss() && !boss->isWorldBoss()))
+                return;
+        }
+        else if (&store != &LootTemplates_Gameobject || !looter->GetMap()->IsDungeon())
+            return;
+
+        // Only group members on this map: this runs in the map's thread.
+        if (Group const* group = looter->GetGroup())
+        {
+            for (GroupReference const* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+                if (Player* member = ref->GetSource())
+                    if (member->IsInMap(looter))
+                        ForgetFinishedChain(member, itr->second);
+        }
+        else if (Player* player = ObjectAccessor::FindPlayer(looter->GetGUID()))
+            ForgetFinishedChain(player, itr->second);
     }
 };
 
 void AddRaidLockoutScripts()
 {
     new RaidLockoutWorldScript();
+    new RaidLockoutGlobalScript();
 }
