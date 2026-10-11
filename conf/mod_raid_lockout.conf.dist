@@ -22,6 +22,33 @@
 
 RaidLockout.Enable = 1
 
+#
+#    RaidLockout.RepeatableBossQuests
+#        Description: Boss trophies can be handed in again. A Head of Onyxia, Head of Nefarian or
+#                     Heart of Hakkar starts a one-time quest, and the core stops dropping a quest
+#                     starter for a character who has done its quest. With 1, when a dungeon, raid
+#                     or world boss (or a chest inside a dungeon or raid) drops an item that
+#                     starts a quest, that quest and its follow-ups are forgotten for every group
+#                     member who has finished them, so the item drops for them again: another of
+#                     the rewards, or just the city buff. A character still needs a new item for
+#                     every round. Not a raid timer: it works whatever RaidLockout.Enable is, and
+#                     applies on .reload config.
+#        Default:     1
+#
+
+RaidLockout.RepeatableBossQuests = 1
+
+#
+#    RaidLockout.RepeatableBossQuestChain
+#        Description: The longest turn-in, in quests, that can be done again: the quest the item
+#                     starts plus the follow-ups handed out after it. Head of Onyxia is 2 (Victory
+#                     for the Alliance, then Celebrating Good Times). Longer ones are story chains
+#                     (An Unsent Letter from Edwin VanCleef is 8) and stay one-time.
+#        Default:     3
+#
+
+RaidLockout.RepeatableBossQuestChain = 3
+
 ########################################
 # Vanilla
 ########################################
