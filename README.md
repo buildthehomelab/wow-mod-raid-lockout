@@ -25,9 +25,11 @@ Naxxramas every 3 days.
 
 Category: Raids
 
-- Raid lockouts now reset every day at 04:00 UTC (midnight Eastern, 11 PM once daylight saving
-  time ends). That includes Zul'Gurub, Ruins of Ahn'Qiraj, Molten Core, Onyxia's Lair, Blackwing
-  Lair, Temple of Ahn'Qiraj and Naxxramas.
+- How long each raid's lockout lasts is now set per raid, in days, from the server config. A raid
+  can reset every day, every few days or on its own stock timer, from Zul'Gurub to the Ruby
+  Sanctum. Resets happen at the server's reset hour.
+- Quest starters that raid and dungeon bosses drop, such as the Head of Onyxia, can be handed in
+  again, so a raid on a short lockout keeps giving its reward.
 
 > Small groups and bot raids shouldn't have to wait a week to try a raid again.
 
